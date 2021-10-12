@@ -1,0 +1,270 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.deveuge</groupId>
+	<artifactId>webdl</artifactId>
+	<version>1.0.0-SNAPSHOT</version>
+	<name>webdl</name>
+	<description>Custom protocol handler for downloading webpages</description>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<java-version>1.8</java-version>
+
+		<spring-version>5.3.10</spring-version>
+		<jsoup-version>1.14.3</jsoup-version>
+		<selenium-version>4.0.0-rc-2</selenium-version>
+		<webdrivermanager-version>5.0.3</webdrivermanager-version>
+		<shutterbug-version>1.5</shutterbug-version>
+		<org.slf4j-version>1.7.32</org.slf4j-version>
+		<junit-version>4.13.2</junit-version>
+	</properties>
+
+	<dependencies>
+		<!-- Spring -->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-web</artifactId>
+			<version>${spring-version}</version>
+		</dependency>
+		
+		<!-- jsoup -->
+		<dependency>
+		    <groupId>org.jsoup</groupId>
+		    <artifactId>jsoup</artifactId>
+		    <version>${jsoup-version}</version>
+		</dependency>
+				
+		<!-- Selenium -->
+		<dependency>
+			<groupId>org.seleniumhq.selenium</groupId>
+			<artifactId>selenium-java</artifactId>
+			<version>${selenium-version}</version>
+		</dependency>
+		
+		<dependency>
+		    <groupId>org.seleniumhq.selenium</groupId>
+		    <artifactId>selenium-remote-driver</artifactId>
+		    <version>${selenium-version}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>io.github.bonigarcia</groupId>
+			<artifactId>webdrivermanager</artifactId>
+			<version>${webdrivermanager-version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.assertthat</groupId>
+			<artifactId>selenium-shutterbug</artifactId>
+			<version>${shutterbug-version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.seleniumhq.selenium</groupId>
+					<artifactId>selenium-java</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<!-- Logging -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>${org.slf4j-version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>jcl-over-slf4j</artifactId>
+			<version>${org.slf4j-version}</version>
+		</dependency>
+
+		<!-- Test -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>${junit-version}</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<includes>
+					<include>**/*</include>
+				</includes>
+			</resource>
+		</resources>
+
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.8.1</version>
+				<configuration>
+					<source>${java-version}</source>
+					<target>${java-version}</target>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>3.2.0</version>
+				<configuration>
+					<encoding>UTF-8</encoding>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>3.2.4</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<createDependencyReducedPom>false</createDependencyReducedPom>
+					<transformers>
+						<transformer
+							implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+							<manifestEntries>
+								<Application-Name>WebDL</Application-Name>
+								<Main-Class>com.deveuge.webdl.Main</Main-Class>
+								<Entry-Point>com.deveuge.webdl.Main</Entry-Point>
+								<Permissions>all-permissions</Permissions>
+								<Built-By>Deveuge</Built-By>
+							</manifestEntries>
+						</transformer>
+					</transformers>
+					<filters>
+						<filter>
+							<artifact>*:*</artifact>
+							<excludes>
+								<exclude>META-INF/*.SF</exclude>
+								<exclude>META-INF/*.DSA</exclude>
+								<exclude>META-INF/*.RSA</exclude>
+							</excludes>
+						</filter>
+					</filters>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<profiles>
+		<profile>
+			<id>installer</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>com.akathist.maven.plugins.launch4j</groupId>
+						<artifactId>launch4j-maven-plugin</artifactId>
+						<version>2.1.2</version>
+						<executions>
+							<execution>
+								<id>launch4j-exe</id>
+								<phase>package</phase>
+								<goals>
+									<goal>launch4j</goal>
+								</goals>
+								<configuration>
+									<headerType>gui</headerType>
+									<jar>target/webdl-${project.version}.jar</jar>
+									<outfile>target\WebDL.exe</outfile>
+									<icon>src\dev\installer\icon.ico</icon>
+									<jre>
+										<bundledJre64Bit>false</bundledJre64Bit>
+										<bundledJreAsFallback>false</bundledJreAsFallback>
+										<minVersion>1.8</minVersion>
+										<maxVersion></maxVersion>
+										<jdkPreference>preferJre</jdkPreference>
+										<path>jre</path>
+									</jre>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<version>1.8</version>
+						<executions>
+							<execution>
+								<id>nsis-installer</id>
+								<phase>package</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target description="Generate NSIS installer">
+										<condition property="nsisOptionPrefix" value="/">
+											<os family="windows" />
+										</condition>
+										<condition property="nsisOptionPrefix" value="-">
+											<os family="unix" />
+										</condition>
+										
+										<echo message="Recreating 'nsis' folder" />
+										<delete dir="${project.basedir}/target/nsis" />
+										<mkdir dir="${project.basedir}/target/nsis" />
+
+										<echo message="Copying resources to 'nsis' folder" />
+										<copy
+											file="${project.basedir}/src/dev/installer/icon.ico"
+											todir="${project.basedir}/target/nsis" />
+										<copy
+											file="${project.basedir}/src/dev/installer/uninstall.ico"
+											todir="${project.basedir}/target/nsis" />
+											<copy
+											file="${project.basedir}/src/dev/installer/license.txt"
+											todir="${project.basedir}/target/nsis" />
+										<copy
+											file="${project.basedir}/src/dev/installer/Installer.nsi"
+											todir="${project.basedir}/target/nsis" />
+										<copy
+											file="${project.basedir}/src/dev/application.properties"
+											todir="${project.basedir}/target/nsis" />
+
+										<echo message="Copying JRE to 'nsis' folder" />
+										<copy todir="${project.basedir}/target/nsis/java32/jre">
+											<fileset dir="${jre.path}" />
+										</copy>
+
+										<echo message="Copying EXE to 'nsis' folder" />
+										<copy
+											file="${project.basedir}/target/WebDL.exe"
+											todir="${project.basedir}/target/nsis/" />
+
+										<echo message="Setting project version" />
+										<replace
+											file="${project.basedir}/target/nsis/Installer.nsi"
+											token="1.0" value="${project.version}" />
+
+										<echo message="Launching NSIS from '${nsis.path}'" />
+										<exec dir="${project.basedir}/target/nsis"
+											executable="${nsis.path}\makensisw" failonerror="true">
+											<arg
+												line="${nsisOptionPrefix}X&quot;!define PRODUCT_VERSION ${project.version}&quot; Installer.nsi" />
+										</exec>
+
+										<echo message="Success!" />
+									</target>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+</project>
