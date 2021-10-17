@@ -16,7 +16,7 @@ public class ConfigProperties {
 
     public ConfigProperties() {
     	try {
-	    	String installationDirectory = WindowsRegistry.readRegistry("HKLM\\SOFTWARE\\WebDL", "Path");
+	    	String installationDirectory = getInstallationDirectory();
 	        FileInputStream file = new FileInputStream(installationDirectory + CONFIG_FILE_PATH);
 	        Properties properties = new Properties();
 	        properties.load(file);
@@ -28,6 +28,14 @@ public class ConfigProperties {
     	} catch(Exception ex) {
 			LOGGER.error("ERROR: Cannot read configuration file 'application.properties'. Setting default values");
     	}
+    }
+    
+    private String getInstallationDirectory() {
+    	boolean is64bit = (System.getenv("ProgramFiles(x86)") != null);
+    	String key = is64bit 
+    			? "HKLM\\SOFTWARE\\Wow6432Node\\WebDL"
+				: "HKLM\\SOFTWARE\\WebDL";
+    	return WindowsRegistry.readRegistry(key, "Path");
     }
 
 	public String getDownloadFolder() {
